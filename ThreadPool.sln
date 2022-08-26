@@ -1,0 +1,25 @@
+﻿
+Microsoft Visual Studio Solution File, Format Version 12.00
+# Visual Studio Version 17
+VisualStudioVersion = 17.3.32811.315
+MinimumVisualStudioVersion = 10.0.40219.1
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "ThreadPool", "ThreadPool.vcxproj", "{CEE52AED-BC95-464F-8DD4-9BBB1C47ABDB}"
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|x64 = Debug|x64
+		Release|x64 = Release|x64
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{CEE52AED-BC95-464F-8DD4-9BBB1C47ABDB}.Debug|x64.ActiveCfg = Debug|x64
+		{CEE52AED-BC95-464F-8DD4-9BBB1C47ABDB}.Debug|x64.Build.0 = Debug|x64
+		{CEE52AED-BC95-464F-8DD4-9BBB1C47ABDB}.Release|x64.ActiveCfg = Release|x64
+		{CEE52AED-BC95-464F-8DD4-9BBB1C47ABDB}.Release|x64.Build.0 = Release|x64
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
+	EndGlobalSection
+	GlobalSection(ExtensibilityGlobals) = postSolution
+		SolutionGuid = {667DE78B-43B8-4AFF-9F3E-9F9B8855708E}
+	EndGlobalSection
+EndGlobal
