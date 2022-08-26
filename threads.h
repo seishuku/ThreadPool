@@ -1,10 +1,10 @@
 #ifndef __THREADS_H__
 
-typedef void (*ThreadCallback)(void *Arg);
+typedef void (*ThreadFunction_t)(void *Arg);
 
 typedef struct
 {
-    ThreadCallback Function;
+    ThreadFunction_t Function;
     void *Arg;
 } ThreadJob_t;
 

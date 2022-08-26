@@ -1,4 +1,4 @@
-#include <windows.h>
+#include <pthread.h>
 #include <conio.h>
 #include <stdio.h>
 #include <stdlib.h>
@@ -7,83 +7,68 @@
 #include "utils/list.h"
 #include "threads.h"
 
-bool Done=false;
-
 bool Stop=false;
 List_t Jobs;
 
-LPCTSTR lpszMutex=L"ThreadWorkerMutex";
-HANDLE Thread=NULL, Mutex=NULL;
+pthread_t Thread;
+pthread_mutex_t Mutex=PTHREAD_MUTEX_INITIALIZER;
 
-DWORD WINAPI Thread_Worker(_In_ LPVOID lpParameter)
+static void *Thread_Worker(void *data)
 {
     printf("Worker thread starting...\n");
 
     while(!Stop)
     {
-		WaitForSingleObject(Mutex, INFINITE);
-
         for(uint32_t i=0;i<List_GetCount(&Jobs);i++)
         {
-            ThreadJob_t *Job=List_GetPointer(&Jobs, i);
-			printf("running job...\n");
+			pthread_mutex_lock(&Mutex);
+			ThreadJob_t *Job=List_GetPointer(&Jobs, i);
+
 			Job->Function(Job->Arg);
+
 			List_Del(&Jobs, i);
-        }
-    }
+			pthread_mutex_unlock(&Mutex);
+		}
+	}
 
     printf("Worker thread done.\n");
 
 	return 0;
 }
 
+void Thread_AddJob(ThreadFunction_t JobFunc, void *JobArg)
+{
+	pthread_mutex_lock(&Mutex);
+	List_Add(&Jobs, &(ThreadJob_t) { JobFunc, JobArg });
+	pthread_mutex_unlock(&Mutex);
+}
+
 void Job1(void *Arg)
 {
-	HANDLE exMutex=OpenMutex(MUTEX_ALL_ACCESS, FALSE, lpszMutex);
-
-	if(exMutex!=NULL)
-	{
-		WaitForSingleObject(exMutex, INFINITE);
-
-		printf("Job 1 doing things!\n");
-		for(volatile uint32_t i=0;i<100000000;i++);
-		printf("Job 1 done things!\n");
-
-		ReleaseMutex(exMutex);
-	}
+	printf("Job 1 doing things!\n");
+	for(volatile uint32_t i=0;i<100000000;i++);
+	printf("Job 1 done things!\n");
 }
 
 void Job2(void *Arg)
 {
-	HANDLE exMutex=OpenMutex(MUTEX_ALL_ACCESS, FALSE, lpszMutex);
-
-	if(exMutex!=NULL)
-	{
-		WaitForSingleObject(exMutex, INFINITE);
-
-		printf("Job 2 doing things!\n");
-		for(volatile uint32_t i=0;i<100000000;i++);
-		printf("Job 2 done things!\n");
-
-		ReleaseMutex(exMutex);
-	}
+	printf("Job 2 doing things!\n");
+	for(volatile uint32_t i=0;i<100000000;i++);
+	printf("Job 2 done things!\n");
 }
 
 int main()
 {
+	bool Done=false;
+
 	List_Init(&Jobs, sizeof(ThreadJob_t), 10, NULL);
 
-	Mutex=CreateMutex(NULL, TRUE, lpszMutex);
-
-	if(Mutex==NULL)
+	if(pthread_mutex_init(&Mutex, NULL))
 	{
-		printf("Unable to create mutex.\n");
 		return -1;
 	}
 
-	Thread=CreateThread(NULL, 0, Thread_Worker, NULL, 0, NULL);
-
-	if(Thread==NULL)
+	if(pthread_create(&Thread, NULL, Thread_Worker, NULL))
 	{
 		printf("Unable to create worker thread.\n");
 		return -1;
@@ -103,36 +88,12 @@ int main()
 					break;
 
 				case 'a':
-				{
-					HANDLE Lock=OpenMutex(MUTEX_ALL_ACCESS, FALSE, lpszMutex);
-
-					if(Lock!=NULL)
-					{
-						ThreadJob_t Job;
-						Job.Function=Job1;
-						Job.Arg=NULL;
-						List_Add(&Jobs, &Job);
-
-						ReleaseMutex(Lock);
-					}
+					Thread_AddJob(Job1, NULL);
 					break;
-				}
 
 				case 'b':
-				{
-					HANDLE Lock=OpenMutex(MUTEX_ALL_ACCESS, FALSE, lpszMutex);
-
-					if(Lock!=NULL)
-					{
-						ThreadJob_t Job;
-						Job.Function=Job2;
-						Job.Arg=NULL;
-						List_Add(&Jobs, &Job);
-
-						ReleaseMutex(Lock);
-					}
+					Thread_AddJob(Job2, NULL);
 					break;
-				}
 
 				default:
 					break;
@@ -142,6 +103,8 @@ int main()
 
 	Stop=true;
 
-	CloseHandle(Mutex);
-	CloseHandle(Thread);
+	pthread_join(Thread, NULL);
+	pthread_mutex_destroy(&Mutex);
+
+	List_Destroy(&Jobs);
 }
