@@ -30,6 +30,9 @@
     <ClCompile Include="utils\list.c">
       <Filter>Source Files\utils</Filter>
     </ClCompile>
+    <ClCompile Include="threads.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="threads.h">

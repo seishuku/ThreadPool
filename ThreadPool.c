@@ -1,4 +1,8 @@
+#ifdef WIN32
+#include <conio.h>
+#else
 #include <ncurses.h>
+#endif
 #include <stdio.h>
 #include <stdlib.h>
 #include <stdint.h>
