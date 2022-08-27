@@ -28,6 +28,26 @@ void Job2(void *Arg)
 	printf("Job 2 done things!\r\n");
 }
 
+void Thread1Constructor(void *Arg)
+{
+	printf("Worker thread 1 starting...\r\n");
+}
+
+void Thread1Destructor(void *Arg)
+{
+	printf("Worker thread 1 stopping...\r\n");
+}
+
+void Thread2Constructor(void *Arg)
+{
+	printf("Worker thread 2 starting...\r\n");
+}
+
+void Thread2Destructor(void *Arg)
+{
+	printf("Worker thread 2 stopping...\r\n");
+}
+
 int main()
 {
 	bool Done=false;
@@ -35,13 +55,20 @@ int main()
 
 #ifndef WIN32
 	initscr();
-	nonl();
-	cbreak();
+	clear();
 	noecho();
+	cbreak();
 #endif
 
 	Thread_Init(&Worker);
+	Thread_AddConstructor(&Worker, Thread1Constructor, NULL);
+	Thread_AddDestructor(&Worker, Thread1Destructor, NULL);
+	Thread_Start(&Worker);
+
 	Thread_Init(&Worker2);
+	Thread_AddConstructor(&Worker2, Thread2Constructor, NULL);
+	Thread_AddDestructor(&Worker2, Thread2Destructor, NULL);
+	Thread_Start(&Worker2);
 
 	printf("Starting...\r\n\n");
 	while(!Done)
