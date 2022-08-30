@@ -24,9 +24,6 @@
     <ClCompile Include="ThreadPool.c">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="utils\genid.c">
-      <Filter>Source Files\utils</Filter>
-    </ClCompile>
     <ClCompile Include="utils\list.c">
       <Filter>Source Files\utils</Filter>
     </ClCompile>
@@ -37,9 +34,6 @@
   <ItemGroup>
     <ClInclude Include="threads.h">
       <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="utils\genid.h">
-      <Filter>Header Files\utils</Filter>
     </ClInclude>
     <ClInclude Include="utils\list.h">
       <Filter>Header Files\utils</Filter>

@@ -4,6 +4,13 @@
 #include <stdbool.h>
 #include "threads.h"
 
+#ifdef WIN32
+#include <Windows.h>
+#define DBGPRINTF(...) { char buf[512]; snprintf(buf, sizeof(buf), __VA_ARGS__); OutputDebugString(buf); }
+#else
+#define DBGPRINTF(...) { fprintf(stderr, __VA_ARGS__); }
+#endif
+
 HWND hWnd, hProgress1, hProgress2, hStatic1, hStatic2;
 
 bool Done=false;
@@ -29,12 +36,12 @@ void Job2(void *Arg)
 
 void ThreadConstructor(void *Arg)
 {
-//	printf("Worker thread %lld starting...\r\n", pthread_self());
+	DBGPRINTF("Worker thread %lld starting...\r\n", pthread_self());
 }
 
 void ThreadDestructor(void *Arg)
 {
-//	printf("Worker thread %lld stopping...\r\n", pthread_self());
+	DBGPRINTF("Worker thread %lld stopping...\r\n", pthread_self());
 }
 
 LRESULT CALLBACK WndProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
@@ -57,6 +64,13 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
 		case WM_KEYDOWN:
 			switch(wParam)
 			{
+				case 'P':
+					Thread_Pause(&Worker);
+					break;
+				case 'O':
+					Thread_Resume(&Worker);
+					break;
+
 				case 'A':
 					Thread_AddJob(&Worker, Job1, NULL);
 					Thread_AddJob(&Worker, Job1, NULL);

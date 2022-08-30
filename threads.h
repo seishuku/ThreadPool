@@ -10,11 +10,13 @@ typedef void (*ThreadFunction_t)(void *Arg);
 
 typedef struct
 {
+	bool Pause;
 	bool Stop;
 	List_t Jobs;
 
 	pthread_t Thread;
 	pthread_mutex_t Mutex;
+	pthread_cond_t Condition;
 
 	ThreadFunction_t Constructor;
 	void *ConstructorArg;
@@ -29,6 +31,8 @@ void Thread_AddConstructor(ThreadWorker_t *Worker, ThreadFunction_t ConstructorF
 void Thread_AddDestructor(ThreadWorker_t *Worker, ThreadFunction_t DestructorFunc, void *Arg);
 bool Thread_Init(ThreadWorker_t *Worker);
 bool Thread_Start(ThreadWorker_t *Worker);
+void Thread_Pause(ThreadWorker_t *Worker);
+void Thread_Resume(ThreadWorker_t *Worker);
 bool Thread_Destroy(ThreadWorker_t *Worker);
 
 #endif
