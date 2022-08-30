@@ -1,114 +1,171 @@
-#ifdef WIN32
-#include <conio.h>
-#else
-#include <ncurses.h>
-#endif
+#include <Windows.h>
 #include <stdio.h>
-#include <stdlib.h>
 #include <stdint.h>
 #include <stdbool.h>
-#include <math.h>
 #include "threads.h"
+
+HWND hWnd, hProgress1, hProgress2, hStatic1, hStatic2;
+
+bool Done=false;
+ThreadWorker_t Worker, Worker2;
 
 void Job1(void *Arg)
 {
-	printf("Job 1 doing things!\r\n");
-	for(uint32_t i=0;i<1000000;i++)
+	for(uint32_t i=0;i<100;i++)
 	{
-		float sq=sqrtf((float)i);
-		printf("%0.4f\r", sq);
+		SetScrollPos(hProgress1, SB_CTL, i, TRUE);
+		Sleep(1);
 	}
-	printf("Job 1 done things!\r\n");
 }
 
 void Job2(void *Arg)
 {
-	printf("Job 2 doing things!\r\n");
-	for(uint32_t i=0;i<1000000;i++)
+	for(uint32_t i=0;i<100;i++)
 	{
-		float sq=sqrtf((float)i);
-		printf("%0.4f\r", sq);
+		SetScrollPos(hProgress2, SB_CTL, i, TRUE);
+		Sleep(1);
 	}
-	printf("Job 2 done things!\r\n");
 }
 
-void Thread1Constructor(void *Arg)
+void ThreadConstructor(void *Arg)
 {
-	printf("Worker thread 1 starting...\r\n");
+//	printf("Worker thread %lld starting...\r\n", pthread_self());
 }
 
-void Thread1Destructor(void *Arg)
+void ThreadDestructor(void *Arg)
 {
-	printf("Worker thread 1 stopping...\r\n");
+//	printf("Worker thread %lld stopping...\r\n", pthread_self());
 }
 
-void Thread2Constructor(void *Arg)
+LRESULT CALLBACK WndProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
 {
-	printf("Worker thread 2 starting...\r\n");
+	switch(uMsg)
+	{
+		case WM_CREATE:
+			break;
+
+		case WM_CLOSE:
+			PostQuitMessage(0);
+			break;
+
+		case WM_DESTROY:
+			break;
+
+		case WM_SIZE:
+			break;
+
+		case WM_KEYDOWN:
+			switch(wParam)
+			{
+				case 'A':
+					Thread_AddJob(&Worker, Job1, NULL);
+					Thread_AddJob(&Worker, Job1, NULL);
+					Thread_AddJob(&Worker, Job1, NULL);
+					Thread_AddJob(&Worker, Job1, NULL);
+					Thread_AddJob(&Worker, Job1, NULL);
+					Thread_AddJob(&Worker, Job1, NULL);
+					Thread_AddJob(&Worker, Job1, NULL);
+					Thread_AddJob(&Worker, Job1, NULL);
+					Thread_AddJob(&Worker, Job1, NULL);
+					Thread_AddJob(&Worker, Job1, NULL);
+					break;
+
+				case 'B':
+					Thread_AddJob(&Worker2, Job2, NULL);
+					Thread_AddJob(&Worker2, Job2, NULL);
+					Thread_AddJob(&Worker2, Job2, NULL);
+					Thread_AddJob(&Worker2, Job2, NULL);
+					Thread_AddJob(&Worker2, Job2, NULL);
+					Thread_AddJob(&Worker2, Job2, NULL);
+					Thread_AddJob(&Worker2, Job2, NULL);
+					Thread_AddJob(&Worker2, Job2, NULL);
+					Thread_AddJob(&Worker2, Job2, NULL);
+					Thread_AddJob(&Worker2, Job2, NULL);
+					break;
+
+				case 'Q':
+					PostQuitMessage(0);
+					break;
+
+				default:
+					break;
+			}
+			break;
+	}
+
+	return DefWindowProc(hWnd, uMsg, wParam, lParam);
 }
 
-void Thread2Destructor(void *Arg)
+int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine, int iCmdShow)
 {
-	printf("Worker thread 2 stopping...\r\n");
-}
+	WNDCLASS wc;
+	wc.style=CS_VREDRAW|CS_HREDRAW|CS_OWNDC;
+	wc.lpfnWndProc=WndProc;
+	wc.cbClsExtra=0;
+	wc.cbWndExtra=0;
+	wc.hInstance=GetModuleHandle(NULL);
+	wc.hIcon=LoadIcon(NULL, IDI_WINLOGO);
+	wc.hCursor=LoadCursor(NULL, IDC_ARROW);
+	wc.hbrBackground=GetStockObject(BLACK_BRUSH);
+	wc.lpszMenuName=NULL;
+	wc.lpszClassName="szAppName";
 
-int main()
-{
-	bool Done=false;
-	ThreadWorker_t Worker, Worker2;
+	RegisterClass(&wc);
 
-#ifndef WIN32
-	initscr();
-	clear();
-	noecho();
-	cbreak();
-#endif
+	RECT WindowRect;
+	WindowRect.left=0;
+	WindowRect.right=400;
+	WindowRect.top=0;
+	WindowRect.bottom=80;
+
+	AdjustWindowRect(&WindowRect, WS_POPUPWINDOW|WS_CAPTION, FALSE);
+
+	hWnd=CreateWindow("szAppName", "szAppName", WS_POPUPWINDOW|WS_CAPTION|WS_VISIBLE|WS_CLIPSIBLINGS, CW_USEDEFAULT, CW_USEDEFAULT, WindowRect.right-WindowRect.left, WindowRect.bottom-WindowRect.top, NULL, NULL, hInstance, NULL);
+	hProgress1=CreateWindow("SCROLLBAR", NULL, SBS_HORZ|WS_CHILD|WS_VISIBLE, 0, 0, 400, 20, hWnd, NULL, hInstance, NULL);
+	hProgress2=CreateWindow("SCROLLBAR", NULL, SBS_HORZ|WS_CHILD|WS_VISIBLE, 0, 20, 400, 20, hWnd, NULL, hInstance, NULL);
+	hStatic1=CreateWindow("STATIC", "Bla", WS_CHILD|WS_VISIBLE, 0, 40, 400, 20, hWnd, NULL, hInstance, NULL);
+	hStatic2=CreateWindow("STATIC", "Bla", WS_CHILD|WS_VISIBLE, 0, 60, 400, 20, hWnd, NULL, hInstance, NULL);
+
+	SetScrollRange(hProgress1, SB_CTL, 0, 100, TRUE);
+	SetScrollRange(hProgress2, SB_CTL, 0, 100, TRUE);
 
 	Thread_Init(&Worker);
-	Thread_AddConstructor(&Worker, Thread1Constructor, NULL);
-	Thread_AddDestructor(&Worker, Thread1Destructor, NULL);
+	Thread_AddConstructor(&Worker, ThreadConstructor, NULL);
+	Thread_AddDestructor(&Worker, ThreadDestructor, NULL);
 	Thread_Start(&Worker);
 
 	Thread_Init(&Worker2);
-	Thread_AddConstructor(&Worker2, Thread2Constructor, NULL);
-	Thread_AddDestructor(&Worker2, Thread2Destructor, NULL);
+	Thread_AddConstructor(&Worker2, ThreadConstructor, NULL);
+	Thread_AddDestructor(&Worker2, ThreadDestructor, NULL);
 	Thread_Start(&Worker2);
 
-	printf("Starting...\r\n\n");
 	while(!Done)
 	{
-		printf("Number of jobs: %d\r", (uint32_t)List_GetCount(&Worker.Jobs));
+		MSG Msg;
 
-#ifdef WIN32
-		if(!_kbhit())
+		if(PeekMessage(&Msg, NULL, 0, 0, PM_REMOVE))
 		{
-#endif
-		switch(getch())
+			if(Msg.message==WM_QUIT)
+				Done=1;
+			else
+			{
+				TranslateMessage(&Msg);
+				DispatchMessage(&Msg);
+			}
+		}
+		else
 		{
-			case 'q':
-				Done=true;
-				break;
+			char temp[512];
 
-			case 'a':
-				Thread_AddJob(&Worker, Job1, NULL);
-				break;
-
-			case 'b':
-				Thread_AddJob(&Worker2, Job2, NULL);
-				break;
-
-			default:
-				break;
+			sprintf(temp, "Thread 1 jobs: %d", Thread_GetJobCount(&Worker));
+			SetWindowText(hStatic1, temp);
+			sprintf(temp, "Thread 2 jobs: %d", Thread_GetJobCount(&Worker2));
+			SetWindowText(hStatic2, temp);
 		}
-#ifdef WIN32
-		}
-#endif
 	}
 
 	Thread_Destroy(&Worker);
 	Thread_Destroy(&Worker2);
 
-#ifndef WIN32
-	endwin();
-#endif
+	DestroyWindow(hWnd);
 }

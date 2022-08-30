@@ -23,6 +23,7 @@ typedef struct
 	void *DestructorArg;
 } ThreadWorker_t;
 
+uint32_t Thread_GetJobCount(ThreadWorker_t *Worker);
 void Thread_AddJob(ThreadWorker_t *Worker, ThreadFunction_t JobFunc, void *Arg);
 void Thread_AddConstructor(ThreadWorker_t *Worker, ThreadFunction_t ConstructorFunc, void *Arg);
 void Thread_AddDestructor(ThreadWorker_t *Worker, ThreadFunction_t DestructorFunc, void *Arg);

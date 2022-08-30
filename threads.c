@@ -22,27 +22,40 @@ void *Thread_Worker(void *Data)
 	// Loop until stop is set
 	while(!Worker->Stop)
 	{
-		// Lock mutex and loop through the list of current jobs and call them, then remove that job from the list.
-		pthread_mutex_lock(&Worker->Mutex);
-
-        for(uint32_t i=0;i<List_GetCount(&Worker->Jobs);i++)
+		// Lock mutex and work the current jobs (if any), then remove that job from the list.
+		if(List_GetCount(&Worker->Jobs))
 		{
-			ThreadJob_t *Job=List_GetPointer(&Worker->Jobs, i);
+			ThreadJob_t Job={ NULL, NULL };
 
-			Job->Function(Job->Arg);
+			pthread_mutex_lock(&Worker->Mutex);
+			List_GetCopy(&Worker->Jobs, 0, (void *)&Job);
+			List_Del(&Worker->Jobs, 0);
+			pthread_mutex_unlock(&Worker->Mutex);
 
-			List_Del(&Worker->Jobs, i);
+			if(Job.Function)
+				Job.Function(Job.Arg);
 		}
-		pthread_mutex_unlock(&Worker->Mutex);
 	}
-
-	printf("Worker thread done.\r\n");
 
 	// If there's a destructor funcrion assigned, call that.
 	if(Worker->Destructor)
 		Worker->Destructor(Worker->DestructorArg);
 
 	return 0;
+}
+
+uint32_t Thread_GetJobCount(ThreadWorker_t *Worker)
+{
+	uint32_t Count=0;
+
+	if(Worker)
+	{
+		pthread_mutex_lock(&Worker->Mutex);
+		Count=(uint32_t)List_GetCount(&Worker->Jobs);
+		pthread_mutex_unlock(&Worker->Mutex);
+	}
+
+	return Count;
 }
 
 // Adds a job function and argument to the job list.
