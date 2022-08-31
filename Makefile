@@ -1,11 +1,11 @@
 TARGET=threadpool
 
 # model loading/drawing
-OBJS=ThreadPool.o threads.o utils/list.o utils/genid.o
+OBJS=ThreadPool.o threads.o utils/list.o
 
 CC=gcc
 CFLAGS=-Wall -O3 -std=c17 -I/usr/X11/include
-LDFLAGS=-L/usr/X11/lib -lm -lpthread -lcurses
+LDFLAGS=-L/usr/X11/lib -lm -lpthread -lX11
 
 all: $(TARGET)
 
