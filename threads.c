@@ -29,45 +29,27 @@ void *Thread_Worker(void *Data)
 	// Loop until stop is set
 	while(!Worker->Stop)
 	{
+		// Lock the mutex
+		pthread_mutex_lock(&Worker->Mutex);
+
 		// Check if there are any jobs
-		if(List_GetCount(&Worker->Jobs))
-		{
-			ThreadJob_t Job={ NULL, NULL };
-
-			// Lock the mutex
-			pthread_mutex_lock(&Worker->Mutex);
-
-			// Get a copy of the current job
-			List_GetCopy(&Worker->Jobs, 0, (void *)&Job);
-
-			// Remove it from the job list
-			List_Del(&Worker->Jobs, 0);
-
-			// Unlock the mutex
-			pthread_mutex_unlock(&Worker->Mutex);
-
-			// If there's a valid pointer on the job item, run it
-			if(Job.Function)
-				Job.Function(Job.Arg);
-		}
-		else
-		{
-			// If no jobs, pause the thread so it's not spinning the CPU
-			Worker->Pause=true;
-		}
-
-		// If the thread is requested to be paused
-		if(Worker->Pause)
-		{
-			// Wait on the trigger condition (either adding more jobs, or resuming the thread)
+		while(List_GetCount(&Worker->Jobs)==0||Worker->Pause)
 			pthread_cond_wait(&Worker->Condition, &Worker->Mutex);
 
-			// Wait causes mutex to lock, so unlock it
-			pthread_mutex_unlock(&Worker->Mutex);
+		ThreadJob_t Job={ NULL, NULL };
 
-			// Reset pause flag
-			Worker->Pause=false;
-		}
+		// Get a copy of the current job
+		List_GetCopy(&Worker->Jobs, 0, (void *)&Job);
+
+		// Remove it from the job list
+		List_Del(&Worker->Jobs, 0);
+
+		// Unlock the mutex
+		pthread_mutex_unlock(&Worker->Mutex);
+
+		// If there's a valid pointer on the job item, run it
+		if(Job.Function)
+			Job.Function(Job.Arg);
 	}
 
 	// If there's a destructor function assigned, call that.
@@ -95,8 +77,8 @@ void Thread_AddJob(ThreadWorker_t *Worker, ThreadFunction_t JobFunc, void *Arg)
 	{
 		pthread_mutex_lock(&Worker->Mutex);
 		List_Add(&Worker->Jobs, &(ThreadJob_t) { JobFunc, Arg });
-		pthread_mutex_unlock(&Worker->Mutex);
 		pthread_cond_signal(&Worker->Condition);
+		pthread_mutex_unlock(&Worker->Mutex);
 	}
 }
 
@@ -176,6 +158,8 @@ bool Thread_Start(ThreadWorker_t *Worker)
 		return false;
 	}
 
+	pthread_detach(Worker->Thread);
+
 	return true;
 }
 
@@ -188,7 +172,8 @@ void Thread_Pause(ThreadWorker_t *Worker)
 // Resume running jobs
 void Thread_Resume(ThreadWorker_t *Worker)
 {
-	pthread_cond_signal(&Worker->Condition);
+	Worker->Pause=false;
+	pthread_cond_signal(&Worker->Condition); // TODO: Is this actually needed? It seems to pause and resume fine with out it.
 }
 
 // Stops thread and waits for it to exit and destorys objects.
@@ -198,13 +183,10 @@ bool Thread_Destroy(ThreadWorker_t *Worker)
 		return false;
 
 	// Wake up thread
-	pthread_cond_signal(&Worker->Condition);
+	Thread_Resume(Worker);
 
 	// Stop the thread
 	Worker->Stop=true;
-
-	// Have the thread join back in with calling thread
-	pthread_join(Worker->Thread, NULL);
 
 	// Destroy the mutex
 	pthread_mutex_destroy(&Worker->Mutex);
