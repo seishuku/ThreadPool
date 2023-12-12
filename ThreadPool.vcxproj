@@ -77,11 +77,9 @@
   <ItemGroup>
     <ClCompile Include="ThreadPool.c" />
     <ClCompile Include="threads.c" />
-    <ClCompile Include="utils\list.c" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="threads.h" />
-    <ClInclude Include="utils\list.h" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

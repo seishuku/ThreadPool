@@ -13,19 +13,10 @@
       <UniqueIdentifier>{67DA6AB6-F800-4c08-8B7A-83BB121AAD01}</UniqueIdentifier>
       <Extensions>rc;ico;cur;bmp;dlg;rc2;rct;bin;rgs;gif;jpg;jpeg;jpe;resx;tiff;tif;png;wav;mfcribbon-ms</Extensions>
     </Filter>
-    <Filter Include="Source Files\utils">
-      <UniqueIdentifier>{88dc96c6-71bb-4976-a665-9cf74b0ec905}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="Header Files\utils">
-      <UniqueIdentifier>{b4170640-300b-4293-8a46-d1f3ceaf23f9}</UniqueIdentifier>
-    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="ThreadPool.c">
       <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="utils\list.c">
-      <Filter>Source Files\utils</Filter>
     </ClCompile>
     <ClCompile Include="threads.c">
       <Filter>Source Files</Filter>
@@ -34,9 +25,6 @@
   <ItemGroup>
     <ClInclude Include="threads.h">
       <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="utils\list.h">
-      <Filter>Header Files\utils</Filter>
     </ClInclude>
   </ItemGroup>
 </Project>
