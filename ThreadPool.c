@@ -68,12 +68,16 @@ void Job2(void *Arg)
 
 void ThreadConstructor(void *Arg)
 {
-	DBGPRINTF("Worker thread %lld starting...\r\n", pthread_self());
+	thrd_t thread=thrd_current();
+
+	DBGPRINTF("Worker thread %p starting...\r\n", &thread);
 }
 
 void ThreadDestructor(void *Arg)
 {
-	DBGPRINTF("Worker thread %lld stopping...\r\n", pthread_self());
+	thrd_t thread=thrd_current();
+
+	DBGPRINTF("Worker thread %p stopping...\r\n", &thread);
 }
 
 #ifdef WIN32
